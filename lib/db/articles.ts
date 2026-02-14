@@ -96,6 +96,32 @@ export async function getArticleByIdFromDb(id: string): Promise<HappyNewsArticle
   }
 }
 
+/** 今日（JST）登録された記事数を取得 */
+export async function countArticlesCreatedToday(): Promise<number> {
+  if (!isSupabaseConfigured()) return 0
+  try {
+    const now = new Date()
+    const jstOffsetMs = 9 * 60 * 60 * 1000
+    const jstTime = now.getTime() + jstOffsetMs
+    const jstDateOnly = Math.floor(jstTime / (24 * 60 * 60 * 1000)) * (24 * 60 * 60 * 1000)
+    const startOfTodayJST = new Date(jstDateOnly - jstOffsetMs).toISOString()
+
+    const supabase = createServerClient()
+    const { count, error } = await supabase
+      .from("articles")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", startOfTodayJST)
+    if (error) {
+      console.warn("[db/articles] count today error:", error.message)
+      return 0
+    }
+    return count ?? 0
+  } catch (e) {
+    console.warn("[db/articles] countArticlesCreatedToday error:", e)
+    return 0
+  }
+}
+
 /** 記事をDBに保存（既存なら更新） */
 export async function upsertArticleToDb(article: HappyNewsArticle): Promise<boolean> {
   if (!isSupabaseConfigured()) return false

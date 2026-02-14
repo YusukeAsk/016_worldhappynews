@@ -319,6 +319,45 @@ export async function getHappyNews(max = 12): Promise<HappyNewsArticle[]> {
   return out
 }
 
+/** 緩和モード: 政治・経済除外のみで1件取得（1日1件確保用。Geminiのハッピー判定は行わない） */
+export async function getHappyNewsRelaxed(max = 1): Promise<HappyNewsArticle[]> {
+  const raw = await fetchRawArticles(Math.max(10, max))
+  const style = GENRE_STYLES["親切"]
+  const out: HappyNewsArticle[] = []
+
+  for (let i = 0; i < Math.min(raw.length, max); i++) {
+    const article = raw[i]
+    const { country, countryCode, location } = inferCountry(article)
+    const coords = getCountryCoords(countryCode, country)
+    const id = generateId(article.url)
+
+    out.push({
+      id,
+      title: article.title,
+      summary: article.description ?? article.title ?? "",
+      location,
+      country: coords.name,
+      countryCode,
+      lat: coords.lat,
+      lng: coords.lng,
+      genre: "親切",
+      genreColor: style.color,
+      paperStyle: style.paperStyle,
+      tapePosition: TAPE_POSITIONS[i % TAPE_POSITIONS.length],
+      tornEdge: TORN_EDGES[i % TORN_EDGES.length],
+      rotation: ROTATIONS[i % ROTATIONS.length],
+      image:
+        article.image ??
+        `https://placehold.co/400x300/f5ead0/8b7355?text=World+Happy+News`,
+      url: article.url,
+      publishedAt: article.publishedAt,
+      sourceName: article.source.name,
+      content: article.content ?? article.description ?? undefined,
+    })
+  }
+  return out
+}
+
 /** IDで1件取得（一覧から検索）。詳細表示用に元記事を日本語全文翻訳 */
 export async function getHappyNewsById(id: string): Promise<HappyNewsArticle | null> {
   const list = await getHappyNews(30)

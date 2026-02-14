@@ -108,7 +108,19 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
 
 1. [Vercel Dashboard](https://vercel.com/dashboard) → プロジェクト選択
 2. **Settings** → **Environment Variables**
-3. 上記3つの環境変数を登録
+3. 以下を登録
+   - Supabase: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+   - 定期取得: `CRON_SECRET`（`openssl rand -hex 32` で生成。Vercel Cron の認証用）
+   - ニュース取得: `GNEWS_API_KEY` または `NEWS_API_KEY`, `GEMINI_API_KEY`
+
+---
+
+## 定期ニュース取得（Vercel Cron）
+
+7:00 / 12:00 / 19:00（JST）に `/api/cron/fetch-news` が実行され、条件に合う記事をDBへ登録します。
+
+- **最低1日1件**: その日に1件も登録されていない場合は、19時の実行時に検索条件を緩めて近しい記事を1件登録します。
+- **CRON_SECRET**: Vercel の環境変数に設定すると、Vercel が自動で Authorization ヘッダーに含めてリクエストします。設定していないと 401 になります。
 
 ---
 
