@@ -1,3 +1,4 @@
+import { createHash } from "crypto"
 import { GoogleGenAI } from "@google/genai"
 import {
   type HappyNewsArticle,
@@ -8,6 +9,7 @@ import {
   GENRE_STYLES,
 } from "./types"
 import { getCountryCoords } from "./countries"
+import { translateArticleContent } from "./news-translate"
 
 /** GNews API のレスポンス型 */
 type GNewsArticle = {
@@ -25,9 +27,9 @@ type GNewsResponse = {
   totalArticles?: number
 }
 
-/** 一意のIDを生成（URLのハッシュ風） */
+/** 一意のIDを生成（URLをSHA-256でハッシュ、異なるURL同士で衝突しないようにする） */
 function generateId(url: string): string {
-  return Buffer.from(url).toString("base64url").slice(0, 32)
+  return createHash("sha256").update(url).digest("base64url").slice(0, 43)
 }
 
 /** 政治・経済・国際紛争系の記事を除外（タイトル・ソース名ベース） */
@@ -315,43 +317,6 @@ export async function getHappyNews(max = 12): Promise<HappyNewsArticle[]> {
     })
   }
   return out
-}
-
-/** 元記事の全文を読みやすい日本語に翻訳（要約せず充実に翻訳） */
-async function translateArticleContent(
-  rawTitle: string,
-  rawBody: string
-): Promise<string> {
-  const key = process.env.GEMINI_API_KEY
-  if (!key || !rawBody?.trim()) return ""
-
-  const ai = new GoogleGenAI({ apiKey: key })
-  const prompt = `あなたは新聞記事の翻訳者です。以下の英語のニュース記事を、読みやすく自然な日本語に翻訳してください。
-
-【ルール】
-- 要約や短縮はせず、元の内容をそのまま漏れなく翻訳してください
-- 文字数を減らさず、報道内容を充実に伝えてください
-- 日本語として自然で読みやすい文体にしてください
-- 段落分けや改行は元記事の構造に合わせてください
-
-【元記事のタイトル】
-${rawTitle}
-
-【元記事の本文】
-${rawBody.slice(0, 8000)}
-
-翻訳結果のみを出力してください。他の説明は不要です。`
-
-  try {
-    const resp = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: prompt,
-    })
-    return (resp.text?.trim() ?? "").trim()
-  } catch (e) {
-    console.warn("[news] Translation error:", e)
-    return ""
-  }
 }
 
 /** IDで1件取得（一覧から検索）。詳細表示用に元記事を日本語全文翻訳 */

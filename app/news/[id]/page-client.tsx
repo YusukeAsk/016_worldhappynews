@@ -7,6 +7,7 @@ import { motion } from "framer-motion"
 import { ArrowLeft, ExternalLink, MapPin } from "lucide-react"
 import { MaskingTape } from "@/components/masking-tape"
 import { NewsDetailMap } from "@/components/news-detail-map"
+import { ArticleComments } from "@/components/article-comments"
 import type { HappyNewsArticle } from "@/lib/types"
 
 export function NewsDetailPageClient({ article }: { article: HappyNewsArticle }) {
@@ -134,6 +135,9 @@ export function NewsDetailPageClient({ article }: { article: HappyNewsArticle })
                 <ExternalLink className="h-4 w-4" />
               </a>
             </div>
+
+            {/* コメント欄 */}
+            <ArticleComments articleId={article.id} />
           </div>
         </div>
       </motion.article>
