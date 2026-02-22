@@ -140,3 +140,5 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
 | 記事が表示されない | `.env.local` に Supabase の環境変数が正しく設定されているか |
 | コメントが投稿できない | RLS ポリシーが正しく作成されているか（SQL Editor で再実行） |
 | Vercel でエラー | Vercel の環境変数に `SUPABASE_SERVICE_ROLE_KEY` が設定されているか |
+| **`[db/articles] select error: TypeError: fetch failed`** | **Vercel の環境変数**で Supabase を確認。`NEXT_PUBLIC_SUPABASE_URL` と `SUPABASE_SERVICE_ROLE_KEY`（または `NEXT_PUBLIC_SUPABASE_ANON_KEY`）が**本番用に設定されているか**。キーをローテーションした場合は Vercel を新しいキーに更新し、再デプロイ。Supabase のプロジェクトが一時停止していないかも確認。 |
+| **`[news] GNews API error: 400`** | **Vercel の環境変数**に `GNEWS_API_KEY` が設定されているか。キーが有効か（GNews ダッシュボードで確認）。400 は「リクエスト不正」のため、無料枠の制限やクエリ構文の制約に引っかかっている可能性あり。ログに API から返った本文が出るので内容を確認。 |

@@ -72,12 +72,13 @@ export async function getArticlesFromDb(max: number): Promise<HappyNewsArticle[]
       .order("created_at", { ascending: false })
       .limit(max)
     if (error) {
-      console.warn("[db/articles] select error:", error.message)
+      console.warn("[db/articles] select error:", error.message, error.cause ?? "")
       return []
     }
     return (data ?? []).map((row) => rowToArticle(row))
   } catch (e) {
-    console.warn("[db/articles] getArticlesFromDb error:", e)
+    const err = e as Error
+    console.warn("[db/articles] getArticlesFromDb error:", err.message, err.cause ?? "")
     return []
   }
 }

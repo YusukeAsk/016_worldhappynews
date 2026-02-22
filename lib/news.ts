@@ -76,7 +76,8 @@ export async function fetchFromGNews(max = 20): Promise<GNewsArticle[]> {
       next: { revalidate: 3600 },
     })
     if (!res.ok) {
-      console.warn(`[news] GNews API error: ${res.status}`)
+      const body = await res.text().catch(() => "")
+      console.warn(`[news] GNews API error: ${res.status}`, body ? body.slice(0, 200) : "")
       continue
     }
     const data = (await res.json()) as GNewsResponse
